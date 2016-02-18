@@ -12,12 +12,16 @@ public class CameraController : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-	
+		transform.LookAt(playerTransform);
 	}
 	
 	// Update is called once per frame
 	void Update () {
-		transform.LookAt(playerTransform);
-//		transform.position = playerTransform.GetComponent<MovementController> ().currCPointT.position;
+		
+		transform.position = Vector3.Slerp(transform.position, playerTransform.position + Vector3.up*6 + -6 * playerTransform.forward, Time.deltaTime * 5f);
+
+
+		Quaternion neededRotation = Quaternion.LookRotation(playerTransform.position - transform.position);
+		transform.rotation = Quaternion.Slerp(transform.rotation, neededRotation, Time.deltaTime * 5f);
 	}
 }

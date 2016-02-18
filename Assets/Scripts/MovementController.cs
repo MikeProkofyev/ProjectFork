@@ -77,7 +77,6 @@ public class MovementController : MonoBehaviour {
 		if (BetweenSectors()) {
 			CheckNextSegmentDirection();	
 		}
-//		Debug.Log(currCPointT.gameObject.name);
 	}
 
 	bool BetweenSectors () {
@@ -95,14 +94,6 @@ public class MovementController : MonoBehaviour {
 		}
 		direction = newDirection;
 	}
-
-	void CheckTurnDirection (int turnDirection) {
-		float dotProduct = Vector3.Dot(currCPointT.TransformDirection(Vector3.right * turnDirection), nextCPointT.TransformDirection(Vector3.forward));
-		bool sameDirWithCP = dotProduct > 0;
-//		Debug.Log(sameDirWithCP);
-		direction = sameDirWithCP ? 1 : -1;
-	}
-
 
 	public void Reverse () {
 		direction *= -1;
@@ -135,10 +126,20 @@ public class MovementController : MonoBehaviour {
 		if (canTurn) {
 			nextShift = ShiftAfterTurn ();
 			int turnDirection = turnLeft ? -1 : 1;
-//			carModelController.StartRotation(turnDirection, 1f);
 			CheckTurnDirection(turnDirection);
 		}
 			
+	}
+
+	void CheckTurnDirection (int turnDirection) {
+		float dotProduct = Vector3.Dot(currCPointT.TransformDirection(Vector3.right * turnDirection), nextCPointT.TransformDirection(Vector3.forward));
+		bool sameDirWithCP = dotProduct > 0;
+		int newDirection = sameDirWithCP ? 1 : -1;
+		if (newDirection != direction) {
+			betweenDirections = true;
+		}
+		direction = newDirection;
+
 	}
 
 	int ShiftAfterTurn () {

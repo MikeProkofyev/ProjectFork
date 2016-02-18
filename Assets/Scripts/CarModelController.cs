@@ -23,7 +23,7 @@ public class CarModelController : MonoBehaviour {
 			t -= Time.deltaTime * turnSpeed;
 			transform.Rotate(0, turnDirection * Time.deltaTime * 120, 0);
 		}
-		else if (transform.localEulerAngles.y != 0) {  //Probably wrong?
+		else if (transform.localEulerAngles.y != 0) {  
 			transform.Rotate(0, -1 * turnDirection * Time.deltaTime * 120, 0);
 		}
 
@@ -36,14 +36,12 @@ public class CarModelController : MonoBehaviour {
 
 		transform.localRotation = Quaternion.Euler(new Vector3(0 ,clampedYRotation , 0));	
 
-		Debug.Log(transform.localRotation.eulerAngles);
 
 	}
 
 	public void StartRotation (int turnDirection, float turnForce) {
 		this.turnDirection = turnDirection;
 		t = turnForce;
-		Debug.Log("Dir: " + this.turnDirection + " force " + t);
 	}
 
 	float ClampAngle(float angle, float min,float max) {
