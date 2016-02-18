@@ -4,7 +4,9 @@ using System.Collections.Generic;
 
 public class MovementController : MonoBehaviour {
 
-	public float speed = 10f;
+	float speed = 3f;
+	float defaultDistanceBtwCP = 3f;
+	float currDistanceBtwCP = 3f;
 
 	float cPointsProgress = 0;
 	public CarModelController carModelController;
@@ -15,10 +17,8 @@ public class MovementController : MonoBehaviour {
 	float shift = 0;
 	int nextShift = 0;
 	public int direction = 1;
-
 	bool betweenDirections = false;
 
-	// Use this for initialization
 	void Start () {
 		SwitchToCPoint(currCPointT);
 	}
@@ -45,18 +45,20 @@ public class MovementController : MonoBehaviour {
 		Quaternion nextRotation = Quaternion.Euler(nextCPointT.rotation.eulerAngles.x, nextCPointT.rotation.eulerAngles.y, 0);
 		Quaternion prevRotation = Quaternion.Euler(currCPointT.rotation.eulerAngles.x, currCPointT.rotation.eulerAngles.y, 0);
 		if (direction == -1) {
-			if (!BetweenSectors()) {
+			if (!betweenDirections) {
 				prevRotation *= Quaternion.Euler(Vector3.up * 180);		
 			}
 			nextRotation *= Quaternion.Euler(Vector3.up * 180);	
-		}
-			
+		}	
 		transform.rotation = Quaternion.Lerp(prevRotation, nextRotation, cPointsProgress);
-		cPointsProgress += Time.deltaTime * speed;
+
+		float speedModifier = currDistanceBtwCP / defaultDistanceBtwCP;
+		cPointsProgress += Time.deltaTime * speed / speedModifier;
 
 		if(cPointsProgress > 1)
 		{
 			cPointsProgress = 0;
+
 			SwitchToCPoint(nextCPointT);
 		}
 	}
@@ -64,21 +66,25 @@ public class MovementController : MonoBehaviour {
 	void  SwitchToCPoint (Transform cPoint) {
 		currCPointT = cPoint;
 		currCPointController = cPoint.GetComponent<CPointController>();
-		nextCPointT = direction == 1 ?
-							currCPointT.GetComponent<CPointController>().pointAhead
-							: currCPointT.GetComponent<CPointController>().invPointAhead;
+		if (direction == 1) {
+			nextCPointT = currCPointT.GetComponent<CPointController>().pointAhead;
+		}else {
+			nextCPointT = currCPointT.GetComponent<CPointController>().invPointAhead;
+		}
 		nextCPointController = nextCPointT.GetComponent<CPointController>();
+		currDistanceBtwCP = Vector3.Distance(currCPointT.position, nextCPointT.position);
 		betweenDirections = false;
 		if (BetweenSectors()) {
-			CheckStraightDirection();	
+			CheckNextSegmentDirection();	
 		}
+//		Debug.Log(currCPointT.gameObject.name);
 	}
 
 	bool BetweenSectors () {
 		return currCPointT.parent != nextCPointT.parent;
 	}
 
-	void CheckStraightDirection () {
+	void CheckNextSegmentDirection () {
 		float dotProduct = Vector3.Dot(currCPointT.TransformDirection(Vector3.forward*direction), nextCPointT.TransformDirection(Vector3.forward));
 		bool sameDirWithCP = dotProduct > 0;
 		int newDirection = sameDirWithCP ? 1 : -1;
@@ -92,9 +98,8 @@ public class MovementController : MonoBehaviour {
 
 	void CheckTurnDirection (int turnDirection) {
 		float dotProduct = Vector3.Dot(currCPointT.TransformDirection(Vector3.right * turnDirection), nextCPointT.TransformDirection(Vector3.forward));
-		Debug.Log(dotProduct);
 		bool sameDirWithCP = dotProduct > 0;
-		Debug.Log(sameDirWithCP);
+//		Debug.Log(sameDirWithCP);
 		direction = sameDirWithCP ? 1 : -1;
 	}
 
@@ -114,6 +119,9 @@ public class MovementController : MonoBehaviour {
 	}
 
 	public void HandleTurnLeft (bool turnLeft) {
+		if (direction == -1) {
+			turnLeft = !turnLeft;
+		}
 		bool canTurn = false;
 		if (turnLeft && currCPointController.pointLeft != null) {
 			canTurn = true;
@@ -126,9 +134,8 @@ public class MovementController : MonoBehaviour {
 		}
 		if (canTurn) {
 			nextShift = ShiftAfterTurn ();
-			Debug.Log("Turning!");
 			int turnDirection = turnLeft ? -1 : 1;
-			carModelController.StartRotation(turnDirection);
+//			carModelController.StartRotation(turnDirection, 1f);
 			CheckTurnDirection(turnDirection);
 		}
 			
@@ -139,7 +146,7 @@ public class MovementController : MonoBehaviour {
 		Vector3 turnDrift = transform.forward;
 		int bestShift = 0;
 		for (int shiftVariant = nextCPointController.leftSpace; shiftVariant <= nextCPointController.rightSpace; shiftVariant++) {
-			float distToShift = Vector3.Distance(transform.position + turnDrift, new Vector3 (nextCPointT.position.x, nextCPointT.position.y, nextCPointT.position.z)  + nextCPointT.right * shiftVariant * 2);
+			float distToShift = Vector3.Distance(transform.TransformDirection(Vector3.forward) + turnDrift, new Vector3 (nextCPointT.position.x, nextCPointT.position.y, nextCPointT.position.z)  + nextCPointT.right * shiftVariant * 2);
 			if (distToShift < closestShiftDistance) {
 				closestShiftDistance = distToShift;
 				bestShift = shiftVariant;
@@ -156,16 +163,8 @@ public class MovementController : MonoBehaviour {
 		bool spaceAvailable = futurePosition <= nextCPointController.rightSpace && futurePosition >= nextCPointController.leftSpace;
 		if (spaceAvailable) {
 			nextShift += inputDir;	
-			carModelController.StartRotation(inputDir * direction);
+//			carModelController.StartRotation(inputDir * direction);
 		}
-	}
-
-	static float ClampAngle (float angle, float min, float max){
-		if (angle < -360.0f)
-			angle += 360.0f;
-		if (angle > 360.0f)
-			angle -= 360.0f;
-		return Mathf.Clamp (angle, min, max);
 	}
 }
 

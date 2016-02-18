@@ -5,9 +5,10 @@ using System.Collections;
 public class InputHandler : MonoBehaviour {
 
 	MovementController movementController;
+	public CarModelController carModelController;
 
 	Vector2 touchStartPosition;
-	float longTouchDuration = .5f;
+	float longTouchDuration = .25f;
 	float touchStartTime, rButtonStartTime, lButtonStartTime = Mathf.Infinity;
 
 	// Use this for initialization
@@ -37,6 +38,7 @@ public class InputHandler : MonoBehaviour {
 			case TouchPhase.Began:
 				touchStartPosition = touch.position;
 				touchStartTime = Time.time;
+				carModelController.StartRotation(turnDirectionFromTap(touchStartPosition), 1f);
 				break;
 			case TouchPhase.Ended:
 
@@ -72,25 +74,27 @@ public class InputHandler : MonoBehaviour {
 	}
 
 	void HandleTap (Vector2 tapPosition) {
-		if (Screen.width/2 < tapPosition.x) {
-			movementController.HandleHorzontalInput(1);
-		} else {
-			movementController.HandleHorzontalInput(-1);
-		}
+		movementController.HandleHorzontalInput(turnDirectionFromTap(tapPosition));
+	}
+
+	int turnDirectionFromTap (Vector2 tapPosition) {
+		return Screen.width/2 < tapPosition.x ? 1 : -1;
 	}
 
 	void HandleKeys () {
 		if (Input.GetKey("right")) {
 			lButtonStartTime = Mathf.Infinity;
 			if (rButtonStartTime == Mathf.Infinity) rButtonStartTime = Time.time;
+			carModelController.StartRotation(1, 1f);
 		} else if (Input.GetKey("left")) {
 			rButtonStartTime = Mathf.Infinity;
 			if (lButtonStartTime == Mathf.Infinity) lButtonStartTime = Time.time;
+			carModelController.StartRotation(-1, 1f);
 		} else {
 			if (rButtonStartTime < Mathf.Infinity) {
 				bool pressedLong = rButtonStartTime + longTouchDuration < Time.time;
 				if (pressedLong) {
-					Debug.Log(Time.time - rButtonStartTime);
+//					Debug.Log(Time.time - rButtonStartTime);
 					movementController.HandleTurnLeft(false);
 				}else {
 					movementController.HandleHorzontalInput(1);
@@ -99,7 +103,7 @@ public class InputHandler : MonoBehaviour {
 			} else if(lButtonStartTime < Mathf.Infinity){
 				bool pressedLong = lButtonStartTime + longTouchDuration < Time.time;
 				if (pressedLong) {
-					Debug.Log(Time.time - lButtonStartTime);
+//					Debug.Log(Time.time - lButtonStartTime);
 					movementController.HandleTurnLeft(true);
 				}else {
 					movementController.HandleHorzontalInput(-1);
