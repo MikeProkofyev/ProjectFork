@@ -8,7 +8,7 @@ public class InputHandler : MonoBehaviour {
 	public CarModelController carModelController;
 
 	Vector2 touchStartPosition;
-	float longTouchDuration = .25f;
+	float longTouchDuration = .15f;
 	float touchStartTime, rButtonStartTime, lButtonStartTime = Mathf.Infinity;
 
 	// Use this for initialization
@@ -61,7 +61,6 @@ public class InputHandler : MonoBehaviour {
 				}
 				break;
 			}
-
 		}
 	}
 

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 public class MovementController : MonoBehaviour {
 
-	float speed = 3f;
+	float speed = 6f;
 	float defaultDistanceBtwCP = 3f;
 	float currDistanceBtwCP = 3f;
 
@@ -62,38 +62,36 @@ public class MovementController : MonoBehaviour {
 		{
 			cPointsProgress = 0;
 
-			SwitchToCPoint(nextCPointT);
+			SwitchToCPointV2(nextCPointT);
 		}
 	}
 
-	void  SwitchToCPoint (Transform cPoint) {
+	void  SwitchToCPointV2 (Transform cPoint) {
 		currCPointT = cPoint;
 		currCPointController = cPoint.GetComponent<CPointController>();
 		betweenDirections = false;
 
-		if (awaitingTurn && currCPointController.pointLeft != nextTurnCPointT) {
+		if (direction == 1) {
+			nextCPointT = currCPointT.GetComponent<CPointController>().pointAhead;
+		}else {
+			nextCPointT = currCPointT.GetComponent<CPointController>().invPointAhead;
+		}
+		nextCPointController = nextCPointT.GetComponent<CPointController>();
+
+
+		if (awaitingTurn && nextCPointController.pointLeft != nextTurnCPointT) {
 			awaitingTurn = false;
 			nextCPointT = nextTurnCPointT;
-			nextCPointController = nextCPointT.GetComponent<CPointController>();
+			nextCPointController = nextTurnCPointT.GetComponent<CPointController>();
 			nextShift = ShiftAfterTurn ();
 			CheckTurnDirection(awaitingTurnDirection);
-
 		}else {
-			if (direction == 1) {
-				nextCPointT = currCPointT.GetComponent<CPointController>().pointAhead;
-			}else {
-				nextCPointT = currCPointT.GetComponent<CPointController>().invPointAhead;
-			}
-			nextCPointController = nextCPointT.GetComponent<CPointController>();
-			if (BetweenSectors()) {
+			bool betweenSectors = currCPointT.parent != nextCPointT.parent;
+			if (betweenSectors) {
 				CheckNextSegmentDirection();	
 			}
 		}
 		currDistanceBtwCP = Vector3.Distance(currCPointT.position, nextCPointT.position);
-	}
-
-	bool BetweenSectors () {
-		return currCPointT.parent != nextCPointT.parent;
 	}
 
 	void CheckNextSegmentDirection () {
@@ -122,14 +120,13 @@ public class MovementController : MonoBehaviour {
 
 	public void TryTurnLeft (bool turnLeft) {
 		if (direction == -1) turnLeft = !turnLeft;
-
-		if (turnLeft) {
-			Debug.Log("Turning left: " + currCPointController.pointLeft);	
-			Debug.Log("Direction: " + direction);
-		}else {
-			Debug.Log("Turning right: " + currCPointController.pointRight);	
-			Debug.Log("Direction: " + direction);
-		}
+//		if (turnLeft) {
+//			Debug.Log("Turning left: " + currCPointController.pointLeft);	
+//			Debug.Log("Direction: " + direction);
+//		}else {
+//			Debug.Log("Turning right: " + currCPointController.pointRight);	
+//			Debug.Log("Direction: " + direction);
+//		}
 
 		if (turnLeft && currCPointController.pointLeft != null) {
 			awaitingTurn = true;
@@ -155,29 +152,6 @@ public class MovementController : MonoBehaviour {
 	public void changeSpeed (bool increase) {
 		speed *= increase ? 2 : 0.5f;
 	}
-
-//	public void HandleTurnLeft (bool turnLeft) {
-//		if (direction == -1) {
-//			turnLeft = !turnLeft;
-//		}
-//		bool canTurn = false;
-//		if (turnLeft && currCPointController.pointLeft != null) {
-//			canTurn = true;
-//			nextCPointT = currCPointController.pointLeft;
-//			nextCPointController = currCPointController.pointLeft.GetComponent<CPointController>();
-//		}else if(!turnLeft && currCPointController.pointRight != null) {
-//			canTurn = true;
-//			nextCPointT = currCPointController.pointRight;
-//			nextCPointController = currCPointController.pointRight.GetComponent<CPointController>();
-//		}
-//		if (canTurn) {
-//			nextShift = ShiftAfterTurn ();
-//			int turnDirection = turnLeft ? -1 : 1;
-//			CheckTurnDirection(turnDirection);
-//		}
-//	}
-
-
 
 	int ShiftAfterTurn () {
 		float closestShiftDistance = Mathf.Infinity;
@@ -205,5 +179,3 @@ public class MovementController : MonoBehaviour {
 		}
 	}
 }
-
-
