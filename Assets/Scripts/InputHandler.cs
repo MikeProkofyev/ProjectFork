@@ -67,9 +67,9 @@ public class InputHandler : MonoBehaviour {
 
 	void HandleLongTap (Vector2 touchPosition) {
 		if (Screen.width/2 < touchPosition.x) {
-			movementController.HandleTurnLeft(false);
+//			movementController.HandleTurnLeft(false);
 		} else {
-			movementController.HandleTurnLeft(true);
+//			movementController.HandleTurnLeft(true);
 		}
 	}
 
@@ -95,7 +95,8 @@ public class InputHandler : MonoBehaviour {
 				bool pressedLong = rButtonStartTime + longTouchDuration < Time.time;
 				if (pressedLong) {
 //					Debug.Log(Time.time - rButtonStartTime);
-					movementController.HandleTurnLeft(false);
+//					movementController.HandleTurnLeft(false);
+					movementController.TryTurnLeft(false);
 				}else {
 					movementController.HandleHorzontalInput(1);
 				}
@@ -104,7 +105,8 @@ public class InputHandler : MonoBehaviour {
 				bool pressedLong = lButtonStartTime + longTouchDuration < Time.time;
 				if (pressedLong) {
 //					Debug.Log(Time.time - lButtonStartTime);
-					movementController.HandleTurnLeft(true);
+//					movementController.HandleTurnLeft(true);
+					movementController.TryTurnLeft(true);
 				}else {
 					movementController.HandleHorzontalInput(-1);
 				}
